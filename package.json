@@ -1,0 +1,25 @@
+{
+  "name": "airbnc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup-db": "psql -f ./db/data/setup-db.sql"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/monikabaltova/airbnc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/monikabaltova/airbnc/issues"
+  },
+  "homepage": "https://github.com/monikabaltova/airbnc#readme",
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "pg": "^8.16.3"
+  }
+}
