@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "setup-db": "psql -f ./db/data/setup-db.sql"
+    "setup-db": "psql -f ./db/data/setup-db.sql",
+    "seed": "node ./db/data/seed-run.js"
   },
   "repository": {
     "type": "git",
