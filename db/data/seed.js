@@ -6,7 +6,7 @@ const {
   propertiesData,
   reviewsData,
 } = require("./test/index.js");
-const { arrayPropertyData, arrayUserData } = require("./utils/formatedData.js");
+const formattedData = require("./utils/formatedData.js");
 
 async function seed() {
   await db.query(`DROP TABLE IF EXISTS property_types`);
@@ -17,7 +17,8 @@ async function seed() {
     description TEXT NOT NULL
     )`);
 
-  const formattedPropertyData = arrayPropertyData(propertyTypesData);
+  const formattedPropertyData = formattedData(propertyTypesData);
+
   await db.query(
     format(
       `INSERT INTO property_types(property_type, description ) 
@@ -25,7 +26,6 @@ async function seed() {
       formattedPropertyData
     )
   );
-  console.log("please work");
 
   await db.query(`CREATE TABLE users(
       user_id SERIAL,
@@ -38,19 +38,17 @@ async function seed() {
       created_at TIMESTAMP
       )`);
 
-  const formattedUsersData = arrayUserData(usersData);
+  const formattedUsersData = formattedData(usersData);
 
   await db.query(
     format(
-      `INSERT INTO users(user_id,
+      `INSERT INTO users(
       first_name, surname, email ,
-      phone_number, is_host, avatar,
-      created_at )`,
-      usersData
+      phone_number, is_host, avatar
+      ) VALUES %L`,
+      formattedUsersData
     )
   );
-
-  console.log("give me this");
 }
 
 module.exports = seed;
