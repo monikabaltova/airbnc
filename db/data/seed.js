@@ -6,7 +6,11 @@ const {
   propertiesData,
   reviewsData,
 } = require("./test/index.js");
-const formattedData = require("./utils/formatedData.js");
+const {
+  formattedData,
+  replaceHostNameWithUserId,
+  sortPropertyKeys,
+} = require("./utils/formatedData.js");
 
 async function seed() {
   await db.query(`DROP TABLE IF EXISTS properties`);
@@ -18,16 +22,6 @@ async function seed() {
     description TEXT NOT NULL
     )`);
 
-  const formattedPropertyData = formattedData(propertyTypesData);
-
-  await db.query(
-    format(
-      `INSERT INTO property_types(property_type, description ) 
-    VALUES %L`,
-      formattedPropertyData
-    )
-  );
-
   await db.query(`CREATE TABLE users(
       user_id SERIAL PRIMARY KEY,
       first_name VARCHAR NOT NULL,
@@ -38,6 +32,26 @@ async function seed() {
       avatar VARCHAR,
       created_at TIMESTAMP
       )`);
+
+  await db.query(`CREATE TABLE properties(
+   property_id SERIAL PRIMARY KEY,
+   host_id INT NOT NULL REFERENCES users(user_id),
+   name VARCHAR NOT NULL,
+   location VARCHAR NOT NULL,
+   property_type VARCHAR NOT NULL REFERENCES property_types(property_type),
+   price_per_night FLOAT(2) NOT NULL,
+   description TEXT
+   )`);
+
+  const formattedPropertyData = formattedData(propertyTypesData);
+
+  await db.query(
+    format(
+      `INSERT INTO property_types(property_type, description ) 
+    VALUES %L`,
+      formattedPropertyData
+    )
+  );
 
   const formattedUsersData = formattedData(usersData);
 
@@ -51,31 +65,25 @@ async function seed() {
     )
   );
 
-  await db.query(`CREATE TABLE properties(
-   property_id SERIAL PRIMARY KEY,
-   host_id INT NOT NULL REFERENCES users(user_id),
-   name VARCHAR NOT NULL,
-   location VARCHAR NOT NULL,
-   property_type VARCHAR NOT NULL REFERENCES property_types(property_type),
-   price_per_night FLOAT(2) NOT NULL,
-   description TEXT
-   )`);
-
-  const formattedPropertiesData = formattedData(propertiesData);
+  const propertiesWithHostIds = replaceHostNameWithUserId(
+    propertiesData,
+    usersData
+  );
+  const orderedPropertyData = sortPropertyKeys(propertiesWithHostIds);
   await db.query(
     format(
       `INSERT INTO properties(
-   name,
-   property_type,
-     location,
-   price_per_night,
-   description,
-   
+      host_id,
+      name,
+      location,
+      property_type,
+      price_per_night,
+      description
       ) VALUES %L`,
-      formattedPropertiesData
+      orderedPropertyData
     )
   );
-  console.log("working");
+  console.log(orderedPropertyData);
 }
 
 module.exports = seed;
