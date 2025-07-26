@@ -3,24 +3,24 @@ function formattedData(data) {
   return formatData;
 }
 
-function replaceHostNameWithUserId(propertiesData, usersData) {
+function createUserRef(usersData) {
   const userRef = {};
-  usersData.forEach((user, index) => {
-    const fullName = `${user.first_name} ${user.surname}`;
-    userRef[fullName] = index + 1;
+  usersData.forEach((user) => {
+    userRef[`${[user.first_name]} ${user.surname}`] = user.user_id;
   });
 
-  return propertiesData.map((property) => {
-    const hostId = userRef[property.host_name];
-
-    const newProperty = { ...property };
-    newProperty.host_id = hostId;
-    delete newProperty.host_name;
-    return newProperty;
-  });
+  return userRef;
 }
 
-function sortPropertyKeys(propertiesArray) {
+function createPropertyRef(propertiesData) {
+  const propertyRef = {};
+  propertiesData.forEach((property) => {
+    propertyRef[property.name] = property.property_id;
+  });
+  return propertyRef;
+}
+
+function sortPropertiesKeys(propertiesData) {
   const correctOrder = [
     "host_id",
     "name",
@@ -30,9 +30,27 @@ function sortPropertyKeys(propertiesArray) {
     "description",
   ];
 
-  return propertiesArray.map((property) =>
+  return propertiesData.map((property) =>
     correctOrder.map((key) => property[key])
   );
 }
 
-module.exports = { formattedData, replaceHostNameWithUserId, sortPropertyKeys };
+function sortReviewsKeys(reviewsData) {
+  const correctOrder = [
+    "property_id",
+    "guest_id",
+    "rating",
+    "comment",
+    "created_at",
+  ];
+
+  return reviewsData.map((review) => correctOrder.map((key) => review[key]));
+}
+
+module.exports = {
+  formattedData,
+  createUserRef,
+  createPropertyRef,
+  sortPropertiesKeys,
+  sortReviewsKeys,
+};

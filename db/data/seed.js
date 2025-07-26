@@ -8,14 +8,17 @@ const {
 } = require("./test/index.js");
 const {
   formattedData,
-  replaceHostNameWithUserId,
-  sortPropertyKeys,
+  createUserRef,
+  createPropertyRef,
+  sortPropertiesKeys,
+  sortReviewsKeys,
 } = require("./utils/formatedData.js");
 
 async function seed() {
+  await db.query(`DROP TABLE IF EXISTS reviews`);
   await db.query(`DROP TABLE IF EXISTS properties`);
-  await db.query(`DROP TABLE IF EXISTS users`);
   await db.query(`DROP TABLE IF EXISTS property_types`);
+  await db.query(`DROP TABLE IF EXISTS users`);
 
   await db.query(`CREATE TABLE property_types(
     property_type VARCHAR NOT NULL PRIMARY KEY,
@@ -30,47 +33,66 @@ async function seed() {
       phone_number VARCHAR,
       is_host BOOL NOT NULL,
       avatar VARCHAR,
-      created_at TIMESTAMP
+      created_at TIMESTAMP DEFAULT NOW()
       )`);
 
   await db.query(`CREATE TABLE properties(
    property_id SERIAL PRIMARY KEY,
-   host_id INT NOT NULL REFERENCES users(user_id),
+   host_id INT REFERENCES users(user_id) NOT NULL,
    name VARCHAR NOT NULL,
    location VARCHAR NOT NULL,
-   property_type VARCHAR NOT NULL REFERENCES property_types(property_type),
+   property_type VARCHAR REFERENCES property_types(property_type) NOT NULL,
    price_per_night FLOAT(2) NOT NULL,
    description TEXT
    )`);
+
+  await db.query(`CREATE TABLE reviews(
+    review_id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES properties(property_id) NOT NULL,
+    guest_id INT REFERENCES users(user_id) NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+        )`);
 
   const formattedPropertyData = formattedData(propertyTypesData);
 
   await db.query(
     format(
       `INSERT INTO property_types(property_type, description ) 
-    VALUES %L`,
+    VALUES %L RETURNING *`,
       formattedPropertyData
     )
   );
 
   const formattedUsersData = formattedData(usersData);
 
-  await db.query(
+  const { rows: insertedUsers } = await db.query(
     format(
       `INSERT INTO users(
       first_name, surname, email ,
       phone_number, is_host, avatar
-      ) VALUES %L`,
+      ) VALUES %L RETURNING *`,
       formattedUsersData
     )
   );
 
-  const propertiesWithHostIds = replaceHostNameWithUserId(
-    propertiesData,
-    usersData
-  );
-  const orderedPropertyData = sortPropertyKeys(propertiesWithHostIds);
-  await db.query(
+  // console.log("Inserted Users:", insertedUsers);
+  const userRef = createUserRef(insertedUsers);
+
+  const updatedProperties = propertiesData.map((property) => {
+    const updatedProperty = { ...property };
+    const user_id = userRef[property.host_name];
+    updatedProperty.host_id = user_id;
+    delete updatedProperty.host_name;
+
+    return updatedProperty;
+  });
+
+  const formattedPropertiesData = sortPropertiesKeys(updatedProperties);
+  // console.log(formattedPropertiesData);
+
+  const { rows: insertedProperties } = await db.query(
     format(
       `INSERT INTO properties(
       host_id,
@@ -79,11 +101,40 @@ async function seed() {
       property_type,
       price_per_night,
       description
-      ) VALUES %L`,
-      orderedPropertyData
+      ) VALUES %L RETURNING *;`,
+      formattedPropertiesData
     )
   );
-  console.log(orderedPropertyData);
+  const propertyRef = createPropertyRef(insertedProperties);
+
+  const updatedReviews = reviewsData.map((review) => {
+    const updatedReview = { ...review };
+    const user_id = userRef[review.guest_name];
+    updatedReview.guest_id = user_id;
+    delete updatedReview.guest_name;
+
+    const property_id = propertyRef[review.property_name];
+    updatedReview.property_id = property_id;
+    delete updatedReview.property_name;
+
+    return updatedReview;
+  });
+
+  const formattedReviewsData = sortReviewsKeys(reviewsData);
+
+  const { rows } = await db.query(
+    format(
+      `INSERT INTO reviews(
+    property_id,
+    guest_id,
+    rating,
+    comment,
+    created_at 
+      ) VALUES %L RETURNING *`,
+      formattedReviewsData
+    )
+  );
+  console.log(rows);
 }
 
 module.exports = seed;
