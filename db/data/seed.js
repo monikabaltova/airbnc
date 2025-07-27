@@ -5,6 +5,8 @@ const {
   usersData,
   propertiesData,
   reviewsData,
+  imagesData,
+  favouritesData,
 } = require("./test/index.js");
 const {
   formattedData,
@@ -14,9 +16,11 @@ const {
   sortReviewsKeys,
   extractGuestNames,
   splitFullName,
+  sortImagesKeys,
 } = require("./utils/formatedData.js");
 
 async function seed() {
+  await db.query(`DROP TABLE IF EXISTS images`);
   await db.query(`DROP TABLE IF EXISTS reviews`);
   await db.query(`DROP TABLE IF EXISTS properties`);
   await db.query(`DROP TABLE IF EXISTS property_types`);
@@ -56,6 +60,13 @@ async function seed() {
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
     )`);
+
+  await db.query(`CREATE TABLE images(
+    image_id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES properties(property_id) NOT NULL,
+    image_url VARCHAR NOT NULL,
+    alt_text VARCHAR NOT NULL
+  )`);
 
   const formattedPropertyData = formattedData(propertyTypesData);
 
@@ -143,7 +154,7 @@ async function seed() {
 
   const formattedReviewsData = sortReviewsKeys(updatedReviews);
 
-  const { rows } = await db.query(
+  const { rows: insertedReviews } = await db.query(
     format(
       `INSERT INTO reviews(
     property_id,
@@ -155,7 +166,30 @@ async function seed() {
       formattedReviewsData
     )
   );
-  console.log(rows);
+
+  const updatedImages = imagesData.map((image) => {
+    const updatedImage = { ...image };
+
+    const property_id = propertyRef[image.property_name];
+    updatedImage.property_id = property_id;
+    delete updatedImage.property_name;
+
+    return updatedImage;
+  });
+
+  const formattedImagesData = sortImagesKeys(updatedImages);
+
+  const { rows: insertedImages } = await db.query(
+    format(
+      `INSERT INTO images(
+    property_id, 
+    image_url,
+    alt_text
+    ) VALUES %L RETURNING *;`,
+      formattedImagesData
+    )
+  );
+  console.log(insertedImages);
 }
 
 module.exports = seed;

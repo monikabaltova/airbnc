@@ -64,6 +64,11 @@ function splitFullName(fullName) {
   return { first_name, surname };
 }
 
+function sortImagesKeys(imagesData) {
+  const correctOrder = ["property_id", "image_url", "alt_tag"];
+
+  return imagesData.map((image) => correctOrder.map((key) => image[key]));
+}
 module.exports = {
   formattedData,
   createUserRef,
@@ -72,4 +77,5 @@ module.exports = {
   sortReviewsKeys,
   extractGuestNames,
   splitFullName,
+  sortImagesKeys,
 };
