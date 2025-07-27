@@ -12,6 +12,8 @@ const {
   createPropertyRef,
   sortPropertiesKeys,
   sortReviewsKeys,
+  extractGuestNames,
+  splitFullName,
 } = require("./utils/formatedData.js");
 
 async function seed() {
@@ -53,7 +55,7 @@ async function seed() {
     rating INT NOT NULL,
     comment TEXT,
     created_at TIMESTAMP DEFAULT NOW()
-        )`);
+    )`);
 
   const formattedPropertyData = formattedData(propertyTypesData);
 
@@ -65,7 +67,28 @@ async function seed() {
     )
   );
 
-  const formattedUsersData = formattedData(usersData);
+  const uniqueGuestNames = extractGuestNames(reviewsData);
+  const userFullNames = usersData.map(
+    (user) => `${user.first_name} ${user.surname}`
+  );
+  const missingGuests = uniqueGuestNames.filter(
+    (guestName) => !userFullNames.includes(guestName)
+  );
+  const extraUsers = missingGuests.map((guestName) => {
+    const { first_name, surname } = splitFullName(guestName);
+    return {
+      first_name,
+      surname,
+      email: `${first_name.toLowerCase()}.${surname.toLowerCase()}@example.com`,
+      phone_number: null,
+      is_host: false,
+      avatar: null,
+    };
+  });
+
+  const fullUsersData = usersData.concat(extraUsers);
+
+  const formattedUsersData = formattedData(fullUsersData);
 
   const { rows: insertedUsers } = await db.query(
     format(
@@ -77,7 +100,6 @@ async function seed() {
     )
   );
 
-  // console.log("Inserted Users:", insertedUsers);
   const userRef = createUserRef(insertedUsers);
 
   const updatedProperties = propertiesData.map((property) => {
@@ -90,7 +112,6 @@ async function seed() {
   });
 
   const formattedPropertiesData = sortPropertiesKeys(updatedProperties);
-  // console.log(formattedPropertiesData);
 
   const { rows: insertedProperties } = await db.query(
     format(
@@ -120,7 +141,7 @@ async function seed() {
     return updatedReview;
   });
 
-  const formattedReviewsData = sortReviewsKeys(reviewsData);
+  const formattedReviewsData = sortReviewsKeys(updatedReviews);
 
   const { rows } = await db.query(
     format(

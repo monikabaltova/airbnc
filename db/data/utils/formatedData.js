@@ -47,10 +47,29 @@ function sortReviewsKeys(reviewsData) {
   return reviewsData.map((review) => correctOrder.map((key) => review[key]));
 }
 
+function extractGuestNames(reviewsData) {
+  const guestNames = [];
+  for (const review of reviewsData) {
+    if (!guestNames.includes(review.guest_name)) {
+      guestNames.push(review.guest_name);
+    }
+  }
+  return guestNames;
+}
+
+function splitFullName(fullName) {
+  const parts = fullName.trim().split(" ");
+  const first_name = parts[0];
+  const surname = parts.slice(1).join(" ") || "";
+  return { first_name, surname };
+}
+
 module.exports = {
   formattedData,
   createUserRef,
   createPropertyRef,
   sortPropertiesKeys,
   sortReviewsKeys,
+  extractGuestNames,
+  splitFullName,
 };
