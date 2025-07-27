@@ -7,6 +7,7 @@ const {
   reviewsData,
   imagesData,
   favouritesData,
+  bookingsData,
 } = require("./test/index.js");
 const {
   formattedData,
@@ -17,9 +18,13 @@ const {
   extractGuestNames,
   splitFullName,
   sortImagesKeys,
+  sortBookingsKeys,
 } = require("./utils/formatedData.js");
 
 async function seed() {
+  await db.query(`DROP TABLE IF EXISTS bookings`);
+  await db.query(`DROP TABLE IF EXISTS bookings`);
+  await db.query(`DROP TABLE IF EXISTS favourites`);
   await db.query(`DROP TABLE IF EXISTS images`);
   await db.query(`DROP TABLE IF EXISTS reviews`);
   await db.query(`DROP TABLE IF EXISTS properties`);
@@ -68,6 +73,20 @@ async function seed() {
     alt_text VARCHAR NOT NULL
   )`);
 
+  await db.query(`CREATE TABLE favourites(
+    favourite_id SERIAL PRIMARY KEY,
+    guest_id INT REFERENCES users(user_id) NOT NULL,
+    property_id INT REFERENCES properties(property_id) NOT NULL
+  )`);
+
+  await db.query(`CREATE TABLE bookings(
+    booking_id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES properties(property_id) NOT NULL,
+    guest_id INT REFERENCES users(user_id) NOT NULL,
+    check_in_date DATE NOT NULL,
+    check_out_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+  )`);
   const formattedPropertyData = formattedData(propertyTypesData);
 
   await db.query(
@@ -189,7 +208,58 @@ async function seed() {
       formattedImagesData
     )
   );
-  console.log(insertedImages);
+  const updatedFavourites = favouritesData.map((favourit) => {
+    const updatedFavourit = { ...favourit };
+    const user_id = userRef[favourit.guest_name];
+    updatedFavourit.guest_id = user_id;
+    delete updatedFavourit.guest_name;
+
+    const property_id = propertyRef[favourit.property_name];
+    updatedFavourit.property_id = property_id;
+    delete updatedFavourit.property_name;
+
+    return updatedFavourit;
+  });
+  const formattedFavouritesData = formattedData(updatedFavourites);
+
+  const { rows: insertedFavouries } = await db.query(
+    format(
+      `
+      INSERT INTO favourites(
+      guest_id, 
+      property_id
+      ) VALUES %L RETURNING *;`,
+      formattedFavouritesData
+    )
+  );
+
+  const updatedBookings = bookingsData.map((booking) => {
+    const updatedBooking = { ...booking };
+    const user_id = userRef[booking.guest_name];
+    updatedBooking.guest_id = user_id;
+    delete updatedBooking.guest_name;
+
+    const property_id = propertyRef[booking.property_name];
+    updatedBooking.property_id = property_id;
+    delete updatedBooking.property_name;
+
+    return updatedBooking;
+  });
+  const formattedBookingsData = sortBookingsKeys(updatedBookings);
+
+  const { rows: insertedBookings } = await db.query(
+    format(
+      `
+      INSERT INTO bookings(
+      property_id, 
+      guest_id, 
+      check_in_date, 
+      check_out_date
+      ) VALUES %L RETURNING *`,
+      formattedBookingsData
+    )
+  );
+  console.log(insertedBookings);
 }
 
 module.exports = seed;

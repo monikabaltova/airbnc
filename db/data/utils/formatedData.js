@@ -1,3 +1,5 @@
+const { bookingsData } = require("../test");
+
 function formattedData(data) {
   const formatData = data.map((obj) => Object.values(obj));
   return formatData;
@@ -69,6 +71,17 @@ function sortImagesKeys(imagesData) {
 
   return imagesData.map((image) => correctOrder.map((key) => image[key]));
 }
+
+function sortBookingsKeys(bookingsData) {
+  const correctOrder = [
+    "property_id",
+    "guest_id",
+    "check_in_date",
+    "check_out_date",
+  ];
+
+  return bookingsData.map((booking) => correctOrder.map((key) => booking[key]));
+}
 module.exports = {
   formattedData,
   createUserRef,
@@ -78,4 +91,5 @@ module.exports = {
   extractGuestNames,
   splitFullName,
   sortImagesKeys,
+  sortBookingsKeys,
 };
