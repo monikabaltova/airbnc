@@ -194,6 +194,5 @@ async function insertAllData() {
       formattedBookingsData
     )
   );
-  console.log(insertedBookings);
 }
 module.exports = insertAllData;

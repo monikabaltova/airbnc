@@ -10,7 +10,7 @@ exports.getAllProperties = async (req, res, next) => {
       min_price,
       property_type
     );
-    console.log(properties);
+
     res.status(200).send(properties);
   } catch (error) {
     next(error);

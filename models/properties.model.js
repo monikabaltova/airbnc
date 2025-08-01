@@ -56,6 +56,6 @@ exports.fetchAllProperties = async (
     ORDER BY ${sortColumn} ${order}; `,
     values
   );
-  console.log(rows);
+
   return { properties: rows };
 };
