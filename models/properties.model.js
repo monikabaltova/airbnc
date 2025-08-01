@@ -18,8 +18,6 @@ exports.fetchAllProperties = async (
 
   const values = [];
   const whereConditions = [];
-  const whereLine =
-    whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
   if (!isNaN(min_price)) {
     values.push(min_price);
@@ -38,6 +36,9 @@ exports.fetchAllProperties = async (
     values.push(formattedType);
     whereConditions.push(`property_type = $${values.length}`);
   }
+
+  const whereLine =
+    whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
   const { rows } = await db.query(
     `
@@ -58,4 +59,50 @@ exports.fetchAllProperties = async (
   );
 
   return { properties: rows };
+};
+
+exports.fetchPropertiesById = async (id, user_id) => {
+  const {
+    rows: [property],
+  } = await db.query(
+    `
+    SELECT 
+    properties.property_id,
+    name AS property_name,
+    location,
+    price_per_night,
+    description,
+    CONCAT(first_name, ' ', surname) AS host,
+    users.avatar AS host_avatar,
+    COUNT(DISTINCT favourites.favourite_id) AS favourite_count
+    FROM properties
+    JOIN users ON properties.host_id = users.user_id
+    LEFT JOIN favourites ON properties.property_id = favourites.property_id
+    WHERE properties.property_id = $1
+    GROUP BY 
+    properties.property_id, 
+    name, 
+    location, 
+    price_per_night, 
+    description, 
+    users.first_name, 
+    users.surname, 
+    users.avatar;`,
+    [id]
+  );
+
+  if (user_id) {
+    const { rows: favourited } = await db.query(
+      `
+      SELECT BOOL_OR(guest_id = $1) AS favourited
+      FROM favourites
+      WHERE guest_id = $1 AND property_id = $2;
+      `,
+      [user_id, id]
+    );
+
+    property.favourited = favourited.length > 0;
+  }
+
+  return { property: property };
 };
