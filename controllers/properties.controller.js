@@ -25,7 +25,6 @@ exports.getPropertiesById = async (req, res, next) => {
   const { user_id } = req.query;
   try {
     const property = await fetchPropertiesById(id, user_id);
-    console.log(property);
     res.status(200).send(property);
   } catch (error) {
     console.error("GET /api/properties/:id error:", err);

@@ -105,7 +105,7 @@ describe("app", () => {
       });
     });
   });
-  describe.only("GET - /api/properties/:id", () => {
+  describe("GET - /api/properties/:id", () => {
     test("a get request to /api/properties/:id returns with status of 200", async () => {
       await request(app).get("/api/properties/6").expect(200);
     });
@@ -125,6 +125,33 @@ describe("app", () => {
       expect(property.hasOwnProperty("host")).toBe(true);
       expect(property.hasOwnProperty("host_avatar")).toBe(true);
       expect(property.hasOwnProperty("favourite_count")).toBe(true);
+    });
+  });
+  describe.only("GET - /api/users/:id", () => {
+    test(`get request to /api/users/:id returns status 200`, async () => {
+      await request(app).get("/api/users/1").expect(200);
+    });
+    test("get request to /api/users/:id returns user object with properties: user_id, first_name, surname, email, phone_number, avatar, created_at", async () => {
+      const { body } = await request(app).get("/api/users/1");
+      const user = body.user;
+      //console.log(user);
+      expect(user.hasOwnProperty("user_id")).toBe(true);
+      expect(user.hasOwnProperty("first_name")).toBe(true);
+      expect(user.hasOwnProperty("surname")).toBe(true);
+      expect(user.hasOwnProperty("email")).toBe(true);
+      expect(user.hasOwnProperty("phone_number")).toBe(true);
+      expect(user.hasOwnProperty("avatar")).toBe(true);
+      expect(user.hasOwnProperty("created_at")).toBe(true);
+    });
+    test("returns 404 and msg when passed a user with id which does not exist", async () => {
+      const { body } = await request(app).get("/api/users/90000").expect(404);
+      expect(body.msg).toBe("User not found");
+    });
+    test("returns 400 and msg when passed invalid data type", async () => {
+      const { body } = await request(app)
+        .get("/api/users/not-a-number")
+        .expect(400);
+      expect(body.msg).toBe("Bad request");
     });
   });
 });
