@@ -8,7 +8,7 @@ exports.fetchUserById = async (id) => {
   const { rows } = await db.query(
     `
     SELECT * FROM users
-    WHERE user_id = $1`,
+    WHERE user_id = $1;`,
     [id]
   );
 

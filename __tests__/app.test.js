@@ -127,7 +127,7 @@ describe("app", () => {
       expect(property.hasOwnProperty("favourite_count")).toBe(true);
     });
   });
-  describe.only("GET - /api/users/:id", () => {
+  describe("GET - /api/users/:id", () => {
     test(`get request to /api/users/:id returns status 200`, async () => {
       await request(app).get("/api/users/1").expect(200);
     });
@@ -150,6 +150,37 @@ describe("app", () => {
     test("returns 400 and msg when passed invalid data type", async () => {
       const { body } = await request(app)
         .get("/api/users/not-a-number")
+        .expect(400);
+      expect(body.msg).toBe("Bad request");
+    });
+  });
+  describe.only("GET - /api/properties/:id/reviews", () => {
+    test("get request to /api/properties/:id/reviews returns status 200", async () => {
+      await request(app).get("/api/properties/1/reviews").expect(200);
+    });
+    test("get request to /api/users/:id returns user object with kay reviews containing array of reviews related to the selected property should have: property id, each with keys: review_id, comment, rating, created_at, guest, guest_avatar", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/1/reviews")
+        .expect(200);
+      expect(body.reviews.length).toBe(3);
+      body.reviews.forEach((review) => {
+        expect(review.hasOwnProperty("review_id")).toBe(true);
+        expect(review.hasOwnProperty("comment")).toBe(true);
+        expect(review.hasOwnProperty("rating")).toBe(true);
+        expect(review.hasOwnProperty("created_at")).toBe(true);
+        expect(review.hasOwnProperty("guest")).toBe(true);
+        expect(review.hasOwnProperty("guest_avatar")).toBe(true);
+      });
+    });
+    test("returns 404 and msg when passed an property id which does not exist", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/2000/reviews")
+        .expect(404);
+      expect(body.msg).toBe("This property has no reviews !");
+    });
+    test("returns 400 and msg when passed invalid data type", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/not-a-number/reviews")
         .expect(400);
       expect(body.msg).toBe("Bad request");
     });
