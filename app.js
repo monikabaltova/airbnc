@@ -8,7 +8,10 @@ const {
   getAllProperties,
   getPropertiesById,
 } = require("./controllers/properties.controller");
-const { getPropertyReviews } = require("./controllers/reviews.controller");
+const {
+  getPropertyReviews,
+  postPropertyReview,
+} = require("./controllers/reviews.controller");
 
 const { getUserById } = require("./controllers/users.controller");
 
@@ -19,6 +22,7 @@ app.get("/api/properties", getAllProperties);
 app.get("/api/properties/:id", getPropertiesById);
 app.get("/api/users/:id", getUserById);
 app.get("/api/properties/:id/reviews", getPropertyReviews);
+app.post("/api/properties/:id/reviews", postPropertyReview);
 
 app.all("/*invalid", handlePathNotFound);
 

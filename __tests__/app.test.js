@@ -154,7 +154,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request");
     });
   });
-  describe.only("GET - /api/properties/:id/reviews", () => {
+  describe("GET - /api/properties/:id/reviews", () => {
     test("get request to /api/properties/:id/reviews returns status 200", async () => {
       await request(app).get("/api/properties/1/reviews").expect(200);
     });
@@ -183,6 +183,48 @@ describe("app", () => {
         .get("/api/properties/not-a-number/reviews")
         .expect(400);
       expect(body.msg).toBe("Bad request");
+    });
+  });
+  describe.only("POST - /api/properties/:id/reviews", () => {
+    test("post request to /api/properties/:id/reviews : adds new review", async () => {
+      await request(app)
+        .post("/api/properties/1/reviews")
+        .send({
+          guest_id: 4,
+          rating: 5,
+          comment: "Lovely place! I'd definitely recommend it.",
+        })
+        .expect(201);
+      const { body } = await request(app).get("/api/properties/1/reviews");
+      expect(body.reviews.length).toBe(4);
+    });
+    test("post to /api/properties/:id/reviews returns inserted review with keys: review_id, property_id, guest_id, rating, comment, created_at", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/reviews")
+        .send({
+          guest_id: 4,
+          rating: 5,
+          comment: "Lovely place! I'd definitely recommend it.",
+        });
+      const { review } = body;
+      expect(review.review_id).toBe(17);
+      expect(review.property_id).toBe(1);
+      expect(review.guest_id).toBe(4);
+      expect(review.rating).toBe(5);
+      expect(review.comment).toBe("Lovely place! I'd definitely recommend it.");
+      expect(review.hasOwnProperty("created_at")).toBe(true);
+    });
+
+    test("returns 400 and msg when payload contains an invalid data type", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/reviews")
+        .send({
+          guest_id: "text",
+          rating: "5",
+          comment: "Not gonna pass!",
+        })
+        .expect(400);
+      expect(body.msg).toBe("Bad request: Invalid data type");
     });
   });
 });
