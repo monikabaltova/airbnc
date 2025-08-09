@@ -2,6 +2,7 @@ const req = require("express/lib/request");
 const {
   fetchPropertyReviews,
   insertPropertyReview,
+  removePropertyReview,
 } = require("../models/reviews.model");
 const res = require("express/lib/response");
 
@@ -22,6 +23,17 @@ exports.postPropertyReview = async (req, res, next) => {
   try {
     const review = await insertPropertyReview(id, guest_id, rating, comment);
     res.status(201).send({ review });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deletePropertyReviews = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    await removePropertyReview(id);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

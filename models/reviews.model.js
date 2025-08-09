@@ -58,3 +58,19 @@ exports.insertPropertyReview = async (id, guest_id, rating, comment) => {
 
   return rows[0];
 };
+
+exports.removePropertyReview = async (id) => {
+  if (isNaN(id)) {
+    return Promise.reject({ status: 400, msg: "Bad request" });
+  }
+  const { rowCount } = await db.query(
+    `
+    DELETE from reviews
+    WHERE review_id = $1;
+    `,
+    [id]
+  );
+  if (!rowCount) return Promise.reject({ status: 404, msg: "Data not found." });
+
+  return;
+};

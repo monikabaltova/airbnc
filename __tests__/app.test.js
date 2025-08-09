@@ -11,6 +11,10 @@ afterAll(() => {
 });
 
 describe("app", () => {
+  test("request to an invalid endpoint responds with 404 and a msg", async () => {
+    const { body } = await request(app).get("/invalid-path").expect(404);
+    expect(body.msg).toBe("Path not found");
+  });
   describe("GET - /api/properties", () => {
     test("a get request to /api/properties returns with status of 200", async () => {
       await request(app).get("/api/properties").expect(200);
@@ -185,7 +189,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request");
     });
   });
-  describe.only("POST - /api/properties/:id/reviews", () => {
+  describe("POST - /api/properties/:id/reviews", () => {
     test("post request to /api/properties/:id/reviews : adds new review", async () => {
       await request(app)
         .post("/api/properties/1/reviews")
@@ -225,6 +229,30 @@ describe("app", () => {
         })
         .expect(400);
       expect(body.msg).toBe("Bad request: Invalid data type");
+    });
+  });
+  describe.only("DELETE - /api/reviews/:id", () => {
+    test(" delete request to /api/reviews/:id returns status code 204 and deletes review ", async () => {
+      await request(app).delete("/api/reviews/1").expect(204);
+
+      const { rowCount } = await db.query("SELECT * FROM reviews;");
+
+      expect(rowCount).toBe(15);
+    });
+
+    test(`returns with 400 and msg if review_id param is not a number`, async () => {
+      const { body } = await request(app)
+        .delete("/api/reviews/notanumber")
+        .expect(400);
+
+      expect(body.msg).toBe("Bad request");
+    });
+    test(`returns with 404 and msg if path structure valid but review_id not in db`, async () => {
+      const { body } = await request(app)
+        .delete("/api/reviews/1000")
+        .expect(404);
+
+      expect(body.msg).toBe("Data not found.");
     });
   });
 });

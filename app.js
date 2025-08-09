@@ -3,6 +3,7 @@ const {
   handleBadRequest,
   handlePathNotFound,
   handleCustomError,
+  handleDataNotFound,
 } = require("./controllers/error.controller");
 const {
   getAllProperties,
@@ -11,6 +12,7 @@ const {
 const {
   getPropertyReviews,
   postPropertyReview,
+  deletePropertyReviews,
 } = require("./controllers/reviews.controller");
 
 const { getUserById } = require("./controllers/users.controller");
@@ -22,11 +24,15 @@ app.get("/api/properties", getAllProperties);
 app.get("/api/properties/:id", getPropertiesById);
 app.get("/api/users/:id", getUserById);
 app.get("/api/properties/:id/reviews", getPropertyReviews);
+
 app.post("/api/properties/:id/reviews", postPropertyReview);
+
+app.delete("/api/reviews/:id", deletePropertyReviews);
 
 app.all("/*invalid", handlePathNotFound);
 
-app.use(handleBadRequest);
 app.use(handleCustomError);
+app.use(handleDataNotFound);
+app.use(handleBadRequest);
 
 module.exports = app;
