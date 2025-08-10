@@ -5,28 +5,32 @@ exports.fetchAllProperties = async (
   order = "DESC",
   max_price,
   min_price,
-  property_type
+  property_type,
+  host_id
 ) => {
   order = order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
-
-  let sortColumn;
-  if (sort === "price_per_night") {
-    sortColumn = "price_per_night";
-  } else {
-    sortColumn = "popularity";
-  }
+  const sortColumn =
+    sort === "price_per_night" ? "price_per_night" : "popularity";
 
   const values = [];
   const whereConditions = [];
 
-  if (!isNaN(min_price)) {
-    values.push(min_price);
-    whereConditions.push(`price_per_night >= $${values.length}`);
+  if (min_price !== undefined) {
+    const min = Number(min_price);
+    if (Number.isNaN(min)) {
+      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
+    }
+    values.push(min);
+    whereConditions.push(`properties.price_per_night >= $${values.length}`);
   }
 
-  if (!isNaN(max_price)) {
-    values.push(max_price);
-    whereConditions.push(`price_per_night <= $${values.length}`);
+  if (max_price !== undefined) {
+    const max = Number(max_price);
+    if (Number.isNaN(max)) {
+      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
+    }
+    values.push(max);
+    whereConditions.push(`properties.price_per_night <= $${values.length}`);
   }
 
   if (property_type) {
@@ -35,6 +39,14 @@ exports.fetchAllProperties = async (
       property_type.slice(1).toLowerCase();
     values.push(formattedType);
     whereConditions.push(`property_type = $${values.length}`);
+  }
+
+  if (host_id !== undefined) {
+    const host = Number(host_id);
+    if (Number.isNaN(host))
+      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
+    values.push(host);
+    whereConditions.push(`properties.host_id = $${values.length}`);
   }
 
   const whereLine =
@@ -48,12 +60,20 @@ exports.fetchAllProperties = async (
     location,
     price_per_night,
     CONCAT(first_name, ' ', surname) AS host,
-    COUNT(favourites.favourite_id) AS popularity
+    COUNT(favourites.favourite_id) AS popularity,
+    img.image_url AS image
     FROM properties
     JOIN users ON properties.host_id = users.user_id
     LEFT JOIN favourites ON favourites.property_id = properties.property_id
+    LEFT JOIN Lateral (
+      SELECT image_url
+      FROM images
+      WHERE images.property_id = properties.property_id
+      ORDER BY image_id
+      LIMIT 1
+      ) img ON true
     ${whereLine}
-    GROUP BY properties.property_id, name, location, price_per_night, users.first_name, users.surname
+    GROUP BY properties.property_id, name, location, price_per_night, users.first_name, users.surname, img.image_url
     ORDER BY ${sortColumn} ${order}; `,
     values
   );
@@ -74,10 +94,12 @@ exports.fetchPropertiesById = async (id, user_id) => {
     description,
     CONCAT(first_name, ' ', surname) AS host,
     users.avatar AS host_avatar,
-    COUNT(DISTINCT favourites.favourite_id) AS favourite_count
+    COUNT(DISTINCT favourites.favourite_id) AS favourite_count,
+    ARRAY_AGG(DISTINCT images.image_url) as images
     FROM properties
     JOIN users ON properties.host_id = users.user_id
     LEFT JOIN favourites ON properties.property_id = favourites.property_id
+    LEFT JOIN images ON images.property_id = properties.property_id
     WHERE properties.property_id = $1
     GROUP BY 
     properties.property_id, 

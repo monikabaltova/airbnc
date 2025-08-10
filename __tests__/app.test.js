@@ -11,9 +11,9 @@ afterAll(() => {
 });
 
 describe("app", () => {
-  test("request to an invalid endpoint responds with 404 and a msg", async () => {
+  test("request to invalid endpoint responds with 404 and a msg", async () => {
     const { body } = await request(app).get("/invalid-path").expect(404);
-    expect(body.msg).toBe("Path not found");
+    expect(body.msg).toBe("Path not found.");
   });
   describe("GET - /api/properties", () => {
     test("a get request to /api/properties returns with status of 200", async () => {
@@ -32,6 +32,15 @@ describe("app", () => {
         expect(property.hasOwnProperty("price_per_night")).toBe(true);
         expect(property.hasOwnProperty("host")).toBe(true);
       });
+    });
+    test("return first image associated with each property", async () => {
+      const { body } = await request(app).get("/api/properties");
+      expect(body.properties[0].image).toBe(
+        "https://example.com/images/cosy_family_house_1.jpg"
+      );
+      expect(body.properties[6].image).toBe(
+        "https://example.com/images/modern_apartment_1.jpg"
+      );
     });
     describe("Queries for GET - /api/properties", () => {
       describe("sort - querie", () => {
@@ -84,6 +93,13 @@ describe("app", () => {
             expect(property.price_per_night <= 100).toBe(true);
           });
         });
+        test("returns 400 and msg if max_price query in NaN", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?max_price=notAnumber")
+            .expect(400);
+
+          expect(body.msg).toBe("Bad request: invalid data");
+        });
       });
       describe("min_price - querie", () => {
         test("should return properties with minimum price limit", async () => {
@@ -93,6 +109,13 @@ describe("app", () => {
           body.properties.forEach((property) => {
             expect(property.price_per_night >= 100).toBe(true);
           });
+        });
+        test("returns 400 and msg if min_price query in NaN", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?max_price=notAnumber")
+            .expect(400);
+
+          expect(body.msg).toBe("Bad request: invalid data");
         });
       });
       describe("property_type - querie", () => {
@@ -107,6 +130,16 @@ describe("app", () => {
           expect(resultIds).toEqual(expect.arrayContaining([2, 7, 10]));
         });
       });
+      describe("host_id", () => {
+        test("?host_id returns only the properties with matching host id", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?host_id=1")
+            .expect(200);
+          body.properties.forEach((property) => {
+            expect(property.host).toBe("Alice Johnson");
+          });
+        });
+      });
     });
   });
   describe("GET - /api/properties/:id", () => {
@@ -118,7 +151,7 @@ describe("app", () => {
       const { body } = await request(app).get("/api/properties/3");
       expect(body.property.property_id).toBe(3);
     });
-    test("get request to /api/properties/:id returns an object with an array with key: property that contains properties, property_id, property_name, location, price_per_night, description, host, host_avatar and favourite_count", async () => {
+    test("get request to /api/properties/:id returns an object with an array with key: property that contains properties, property_id, property_name, location, price_per_night, description, host, host_avatar, favourite_count and images", async () => {
       const { body } = await request(app).get("/api/properties/3");
       const property = body.property;
       expect(property.hasOwnProperty("property_id")).toBe(true);
@@ -129,6 +162,13 @@ describe("app", () => {
       expect(property.hasOwnProperty("host")).toBe(true);
       expect(property.hasOwnProperty("host_avatar")).toBe(true);
       expect(property.hasOwnProperty("favourite_count")).toBe(true);
+      expect(property.hasOwnProperty("images")).toBe(true);
+    });
+
+    test("returned images property needs to be array containing all img for the selected property", async () => {
+      const { body } = await request(app).get("/api/properties/1");
+      expect(Array.isArray(body.property.images)).toBe(true);
+      expect(body.property.images.length).toBe(2);
     });
   });
   describe("GET - /api/users/:id", () => {
@@ -138,7 +178,7 @@ describe("app", () => {
     test("get request to /api/users/:id returns user object with properties: user_id, first_name, surname, email, phone_number, avatar, created_at", async () => {
       const { body } = await request(app).get("/api/users/1");
       const user = body.user;
-      //console.log(user);
+
       expect(user.hasOwnProperty("user_id")).toBe(true);
       expect(user.hasOwnProperty("first_name")).toBe(true);
       expect(user.hasOwnProperty("surname")).toBe(true);
@@ -231,7 +271,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request: Invalid data type");
     });
   });
-  describe.only("DELETE - /api/reviews/:id", () => {
+  describe("DELETE - /api/reviews/:id", () => {
     test(" delete request to /api/reviews/:id returns status code 204 and deletes review ", async () => {
       await request(app).delete("/api/reviews/1").expect(204);
 
