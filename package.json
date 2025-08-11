@@ -2,14 +2,16 @@
   "name": "airbnc",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "listen.js",
   "scripts": {
     "test": "jest app.test.js",
     "test-utils": "jest utils.test.js",
     "setup-dbs": "psql -f ./db/setup-db.sql",
     "seed-dev": "node ./db/seed-run.js",
     "seed-test": "NODE_ENV=test node ./db/seed-run.js",
-    "dev": "nodemon listen.js"
+    "seed-prod": "NODE_ENV=production node ./db/seed-run.js",
+    "dev": "nodemon listen.js",
+    "start": "node listen.js"
   },
   "repository": {
     "type": "git",

@@ -3,6 +3,6 @@ const testData = require("./test");
 
 const ENV = process.env.NODE_ENV || "dev";
 
-const data = { dev: devData, test: testData };
+const data = { dev: devData, production: devData, test: testData };
 
 module.exports = data[ENV];
