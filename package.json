@@ -6,8 +6,9 @@
   "scripts": {
     "test": "jest app.test.js",
     "test-utils": "jest utils.test.js",
-    "setup-db": "psql -f ./db/data/setup-db.sql",
-    "seed": "node ./db/data/seed-run.js",
+    "setup-dbs": "psql -f ./db/setup-db.sql",
+    "seed-dev": "node ./db/seed-run.js",
+    "seed-test": "NODE_ENV=test node ./db/seed-run.js",
     "dev": "nodemon listen.js"
   },
   "repository": {

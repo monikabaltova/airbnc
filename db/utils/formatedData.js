@@ -1,4 +1,4 @@
-const { bookingsData } = require("../test");
+const { bookingsData } = require("../data/index");
 
 function formattedData(data) {
   const formatData = data.map((obj) => Object.values(obj));

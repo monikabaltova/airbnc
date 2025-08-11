@@ -1,4 +1,4 @@
-const db = require("../db/data/connection");
+const db = require("../db/connection");
 
 exports.fetchPropertyReviews = async (id) => {
   if (isNaN(id)) {

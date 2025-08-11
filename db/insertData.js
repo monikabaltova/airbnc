@@ -8,7 +8,7 @@ const {
   imagesData,
   favouritesData,
   bookingsData,
-} = require("./test/index.js");
+} = require("./data/index.js");
 const {
   formattedData,
   createUserRef,
