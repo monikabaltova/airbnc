@@ -86,9 +86,7 @@ exports.fetchAllProperties = async (
 };
 
 exports.fetchPropertiesById = async (id, user_id) => {
-  const {
-    rows: [property],
-  } = await db.query(
+  const { rows } = await db.query(
     `
     SELECT 
     properties.property_id,
@@ -117,6 +115,12 @@ exports.fetchPropertiesById = async (id, user_id) => {
     [id]
   );
 
+  if (!rows.length) {
+    return Promise.reject({ status: 404, msg: "Property not found" });
+  }
+
+  const property = rows[0];
+
   if (user_id) {
     const { rows: favourited } = await db.query(
       `
@@ -130,5 +134,5 @@ exports.fetchPropertiesById = async (id, user_id) => {
     property.favourited = favourited.length > 0;
   }
 
-  return { property: property };
+  return { property };
 };

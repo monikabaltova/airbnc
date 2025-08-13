@@ -84,7 +84,7 @@ describe("app", () => {
           });
         });
       });
-      describe.only("max_price - querie", () => {
+      describe("max_price - querie", () => {
         test("should return properties with maximum price limit", async () => {
           const { body } = await request(app)
             .get("/api/properties?max_price=100")
@@ -109,7 +109,7 @@ describe("app", () => {
         });
       });
 
-      describe.only("min_price - querie", () => {
+      describe("min_price - querie", () => {
         test("should return properties with minimum price limit", async () => {
           const { body } = await request(app)
             .get("/api/properties?min_price=100")
@@ -144,6 +144,13 @@ describe("app", () => {
           expect(resultIds.length).toBe(3);
           expect(resultIds).toEqual(expect.arrayContaining([2, 7, 10]));
         });
+        test("returns status 200 when the selected property type does not exist or there are no properties listed", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?property_type=garage")
+            .expect(200);
+
+          expect(body.msg).toBe("There is no properties avaliable");
+        });
       });
       describe("host_id", () => {
         test("?host_id returns only the properties with matching host id", async () => {
@@ -154,10 +161,22 @@ describe("app", () => {
             expect(property.host).toBe("Alice Johnson");
           });
         });
+        test("returns 400 when host id is invalid input data", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?host_id=not-a-number")
+            .expect(400);
+          expect(body.msg).toBe("Bad request: invalid data");
+        });
+        test("returns 200 when host id valid and exists but no properties avaliable", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?host_id=2")
+            .expect(200);
+          expect(body.msg).toBe("This user currently has no properties");
+        });
       });
     });
   });
-  describe("GET - /api/properties/:id", () => {
+  describe.only("GET - /api/properties/:id", () => {
     test("a get request to /api/properties/:id returns with status of 200", async () => {
       await request(app).get("/api/properties/6").expect(200);
     });
@@ -168,22 +187,31 @@ describe("app", () => {
     });
     test("get request to /api/properties/:id returns an object with an array with key: property that contains properties, property_id, property_name, location, price_per_night, description, host, host_avatar, favourite_count and images", async () => {
       const { body } = await request(app).get("/api/properties/3");
-      const property = body.property;
-      expect(property.hasOwnProperty("property_id")).toBe(true);
-      expect(property.hasOwnProperty("property_name")).toBe(true);
-      expect(property.hasOwnProperty("location")).toBe(true);
-      expect(property.hasOwnProperty("price_per_night")).toBe(true);
-      expect(property.hasOwnProperty("description")).toBe(true);
-      expect(property.hasOwnProperty("host")).toBe(true);
-      expect(property.hasOwnProperty("host_avatar")).toBe(true);
-      expect(property.hasOwnProperty("favourite_count")).toBe(true);
-      expect(property.hasOwnProperty("images")).toBe(true);
+      const expected = {
+        property_id: 3,
+        property_name: "Chic Studio Near the Beach",
+        location: "Brighton, UK",
+        price_per_night: 90,
+        description: "Description of Chic Studio Near the Beach.",
+        host: "Alice Johnson",
+        host_avatar: "https://example.com/images/alice.jpg",
+        favourite_count: "1",
+        images: ["https://example.com/images/chic_studio_1.jpg"],
+      };
+      expect(body.property).toEqual(expected);
     });
 
     test("returned images property needs to be array containing all img for the selected property", async () => {
       const { body } = await request(app).get("/api/properties/1");
       expect(Array.isArray(body.property.images)).toBe(true);
       expect(body.property.images.length).toBe(2);
+    });
+
+    test("returns 404 when id is valid data type, but is not existing in the DB ", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/1000")
+        .expect(404);
+      expect(body.msg).toBe("Property not found");
     });
   });
   describe("GET - /api/users/:id", () => {
