@@ -32,7 +32,6 @@ app.delete("/api/reviews/:id", deletePropertyReviews);
 app.all("/*invalid", handlePathNotFound);
 
 app.use(handleCustomError);
-app.use(handleDataNotFound);
 app.use(handleBadRequest);
 
 module.exports = app;
