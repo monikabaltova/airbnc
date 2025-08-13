@@ -84,11 +84,11 @@ describe("app", () => {
           });
         });
       });
-      describe("max_price - querie", () => {
+      describe.only("max_price - querie", () => {
         test("should return properties with maximum price limit", async () => {
-          const { body } = await request(app).get(
-            "/api/properties?max_price=100"
-          );
+          const { body } = await request(app)
+            .get("/api/properties?max_price=100")
+            .expect(200);
           body.properties.forEach((property) => {
             expect(property.price_per_night <= 100).toBe(true);
           });
@@ -100,12 +100,20 @@ describe("app", () => {
 
           expect(body.msg).toBe("Bad request: invalid data");
         });
+        test("returns 200 with a msg : properties not found / when the input is valid but there is no properties in this range", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?max_price=5")
+            .expect(200);
+
+          expect(body.msg).toBe("There is no properties avaliable");
+        });
       });
-      describe("min_price - querie", () => {
+
+      describe.only("min_price - querie", () => {
         test("should return properties with minimum price limit", async () => {
-          const { body } = await request(app).get(
-            "/api/properties?min_price=100"
-          );
+          const { body } = await request(app)
+            .get("/api/properties?min_price=100")
+            .expect(200);
           body.properties.forEach((property) => {
             expect(property.price_per_night >= 100).toBe(true);
           });
@@ -116,6 +124,13 @@ describe("app", () => {
             .expect(400);
 
           expect(body.msg).toBe("Bad request: invalid data");
+        });
+        test("returns 200 with a msg : properties not found / when the input is valid but there is no properties in this range", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?max_price=5")
+            .expect(200);
+
+          expect(body.msg).toBe("There is no properties avaliable");
         });
       });
       describe("property_type - querie", () => {

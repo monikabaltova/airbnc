@@ -15,21 +15,13 @@ exports.fetchAllProperties = async (
   const values = [];
   const whereConditions = [];
 
-  if (min_price !== undefined) {
-    const min = Number(min_price);
-    if (Number.isNaN(min)) {
-      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
-    }
-    values.push(min);
+  if (min_price) {
+    values.push(min_price);
     whereConditions.push(`properties.price_per_night >= $${values.length}`);
   }
 
-  if (max_price !== undefined) {
-    const max = Number(max_price);
-    if (Number.isNaN(max)) {
-      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
-    }
-    values.push(max);
+  if (max_price) {
+    values.push(max_price);
     whereConditions.push(`properties.price_per_night <= $${values.length}`);
   }
 
@@ -43,8 +35,7 @@ exports.fetchAllProperties = async (
 
   if (host_id !== undefined) {
     const host = Number(host_id);
-    if (Number.isNaN(host))
-      return Promise.reject({ status: 400, msg: "Bad request: invalid data" });
+
     values.push(host);
     whereConditions.push(`properties.host_id = $${values.length}`);
   }
@@ -78,6 +69,19 @@ exports.fetchAllProperties = async (
     values
   );
 
+  if (!rows.length) {
+    if (host_id) {
+      return Promise.reject({
+        status: 200,
+        msg: "This user currently has no properties",
+      });
+    } else {
+      return Promise.reject({
+        status: 200,
+        msg: "There is no properties avaliable",
+      });
+    }
+  }
   return { properties: rows };
 };
 
