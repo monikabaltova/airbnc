@@ -220,7 +220,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request: invalid data");
     });
   });
-  describe.only("GET - /api/users/:id", () => {
+  describe("GET - /api/users/:id", () => {
     test(`get request to /api/users/:id returns status 200`, async () => {
       await request(app).get("/api/users/1").expect(200);
     });
@@ -250,7 +250,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request: invalid data");
     });
   });
-  describe("GET - /api/properties/:id/reviews", () => {
+  describe.only("GET - /api/properties/:id/reviews", () => {
     test("get request to /api/properties/:id/reviews returns status 200", async () => {
       await request(app).get("/api/properties/1/reviews").expect(200);
     });
@@ -268,17 +268,21 @@ describe("app", () => {
         expect(review.hasOwnProperty("guest_avatar")).toBe(true);
       });
     });
-    test("returns 404 and msg when passed an property id which does not exist", async () => {
+    test("returns also additional an average_rating property which calculates the average rating of body.reviews", async () => {
+      const { body } = await request(app).get("/api/properties/3/reviews");
+      expect(body.average_rating).toBe(4);
+    });
+    test("returns 2000 and msg when passed a valid property id which does not exist", async () => {
       const { body } = await request(app)
         .get("/api/properties/2000/reviews")
-        .expect(404);
+        .expect(200);
       expect(body.msg).toBe("This property has no reviews !");
     });
     test("returns 400 and msg when passed invalid data type", async () => {
       const { body } = await request(app)
         .get("/api/properties/not-a-number/reviews")
         .expect(400);
-      expect(body.msg).toBe("Bad request");
+      expect(body.msg).toBe("Bad request: invalid data");
     });
   });
   describe("POST - /api/properties/:id/reviews", () => {

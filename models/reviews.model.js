@@ -1,9 +1,6 @@
 const db = require("../db/connection");
 
 exports.fetchPropertyReviews = async (id) => {
-  if (isNaN(id)) {
-    return Promise.reject({ status: 400, msg: "Bad request" });
-  }
   const { rows } = await db.query(
     `
     SELECT 
@@ -24,7 +21,7 @@ exports.fetchPropertyReviews = async (id) => {
 
   if (!rows.length) {
     return Promise.reject({
-      status: 404,
+      status: 200,
       msg: "This property has no reviews !",
     });
   }
