@@ -1,10 +1,6 @@
 const db = require("../db/connection");
 
 exports.fetchUserById = async (id) => {
-  if (isNaN(id)) {
-    return Promise.reject({ status: 400, msg: "Bad request" });
-  }
-
   const { rows } = await db.query(
     `
     SELECT * FROM users
