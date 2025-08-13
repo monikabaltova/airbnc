@@ -1,9 +1,8 @@
 const express = require("express");
 const {
-  handleBadRequest,
   handlePathNotFound,
+  handleBadRequest,
   handleCustomError,
-  handleDataNotFound,
 } = require("./controllers/error.controller");
 const {
   getAllProperties,
