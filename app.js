@@ -13,6 +13,10 @@ const {
   postPropertyReview,
   deletePropertyReviews,
 } = require("./controllers/reviews.controller");
+const {
+  postFavourite,
+  deleteFavourites,
+} = require("./controllers/favourites.controller");
 
 const { getUserById } = require("./controllers/users.controller");
 
@@ -25,8 +29,13 @@ app.get("/api/users/:id", getUserById);
 app.get("/api/properties/:id/reviews", getPropertyReviews);
 
 app.post("/api/properties/:id/reviews", postPropertyReview);
+app.post("/api/properties/:id/favourite", postFavourite);
 
 app.delete("/api/reviews/:id", deletePropertyReviews);
+app.delete(
+  "/api/properties/:property_id/users/:guest_id/favourite",
+  deleteFavourites
+);
 
 app.all("/*invalid", handlePathNotFound);
 

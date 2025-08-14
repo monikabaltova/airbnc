@@ -226,7 +226,6 @@ describe("app", () => {
     });
     test("get request to /api/users/:id returns user object with properties: user_id, first_name, surname, email, phone_number, avatar, created_at", async () => {
       const { body } = await request(app).get("/api/users/1");
-      console.log(body.user);
 
       const expected = {
         user_id: 1,
@@ -250,7 +249,7 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request: invalid data");
     });
   });
-  describe.only("GET - /api/properties/:id/reviews", () => {
+  describe("GET - /api/properties/:id/reviews", () => {
     test("get request to /api/properties/:id/reviews returns status 200", async () => {
       await request(app).get("/api/properties/1/reviews").expect(200);
     });
@@ -272,7 +271,7 @@ describe("app", () => {
       const { body } = await request(app).get("/api/properties/3/reviews");
       expect(body.average_rating).toBe(4);
     });
-    test("returns 2000 and msg when passed a valid property id which does not exist", async () => {
+    test("returns 200 and msg when passed a valid property id which does not exist", async () => {
       const { body } = await request(app)
         .get("/api/properties/2000/reviews")
         .expect(200);
@@ -306,14 +305,28 @@ describe("app", () => {
           rating: 5,
           comment: "Lovely place! I'd definitely recommend it.",
         });
-      const { review } = body;
-      expect(review.review_id).toBe(17);
-      expect(review.property_id).toBe(1);
-      expect(review.guest_id).toBe(4);
-      expect(review.rating).toBe(5);
-      expect(review.comment).toBe("Lovely place! I'd definitely recommend it.");
-      expect(review.hasOwnProperty("created_at")).toBe(true);
+      const expected = {
+        review_id: 17,
+        property_id: 1,
+        guest_id: 4,
+        rating: 5,
+        comment: "Lovely place! I'd definitely recommend it.",
+      };
+      expect(body.review).toMatchObject(expected);
+      expect(body.review.hasOwnProperty("created_at")).toBe(true);
     });
+
+    /* test("returns 404 and msg when guest_id does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/3/reviews")
+        .send({
+          guest_id: 1000,
+          rating: 5,
+          comment: "Great",
+        })
+        .expect(404);
+      expect(body.msg).toBe("User not found");
+    });*/
 
     test("returns 400 and msg when payload contains an invalid data type", async () => {
       const { body } = await request(app)
@@ -324,7 +337,17 @@ describe("app", () => {
           comment: "Not gonna pass!",
         })
         .expect(400);
-      expect(body.msg).toBe("Bad request: Invalid data type");
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 400 and msg when payload missing a not null variable", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/3/reviews")
+        .send({
+          rating: 5,
+          comment: "Great",
+        })
+        .expect(400);
+      expect(body.msg).toBe("Fill up all required fields");
     });
   });
   describe("DELETE - /api/reviews/:id", () => {
@@ -341,14 +364,84 @@ describe("app", () => {
         .delete("/api/reviews/notanumber")
         .expect(400);
 
-      expect(body.msg).toBe("Bad request");
+      expect(body.msg).toBe("Bad request: invalid data");
     });
     test(`returns with 404 and msg if path structure valid but review_id not in db`, async () => {
       const { body } = await request(app)
         .delete("/api/reviews/1000")
         .expect(404);
 
-      expect(body.msg).toBe("Data not found.");
+      expect(body.msg).toBe("Review not found.");
+    });
+  });
+  describe("POST - /api/properties/:id/favourite", () => {
+    test("post request to /api/properties/:id/favourite responds with 201 status", async () => {
+      await request(app)
+        .post("/api/properties/4/favourite")
+        .send({
+          guest_id: 1,
+        })
+        .expect(201);
+    });
+    test("post request returns msg and favourit_id", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/4/favourite")
+        .send({
+          guest_id: 1,
+        });
+
+      expect(body.msg).toBe("Property favourited successfully");
+      expect(body.favourite_id).toBe(16);
+    });
+    test("returns 400 when passed invalid property_id data", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/notAnumber/favourite")
+        .send({
+          guest_id: 1,
+        })
+        .expect(400);
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 400 when guest_id is invalid data", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/4/favourite")
+        .send({
+          guest_id: "text",
+        })
+        .expect(400);
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 400 when payload have not field values which are not null values", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/favourite")
+        .send({})
+        .expect(400);
+      expect(body.msg).toBe("Fill up all required fields");
+    });
+    // 404 user not found and 404 property not found
+    describe.only("DELETE - api/properties/:id/users/:id/favourite", () => {
+      test("deleted request returns status 204", async () => {
+        const { rows: beforeDelete } = await db.query(
+          `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
+          [1, 6]
+        );
+        await request(app)
+          .delete("/api/properties/1/users/6/favourite")
+          .expect(204);
+        const { rows: afterDelete } = await db.query(
+          `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
+          [1, 6]
+        );
+        expect(beforeDelete.length).toBe(1);
+        expect(afterDelete.length).toBe(0);
+      });
+      test("returns 400 when property_ir and user_id are invalid data", async () => {
+        const { body } = await request(app)
+          .delete("/api/properties/notAnumber/users/text/favourite")
+          .expect(400);
+        expect(body.msg).toBe("Bad request: invalid data");
+      });
+      //test user not found and property not found
     });
   });
 });

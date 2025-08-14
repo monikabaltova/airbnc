@@ -36,16 +36,6 @@ exports.fetchPropertyReviews = async (id) => {
 };
 
 exports.insertPropertyReview = async (id, guest_id, rating, comment) => {
-  if (
-    (guest_id && typeof guest_id !== "number") ||
-    (rating && typeof rating !== "number")
-  ) {
-    return Promise.reject({
-      status: 400,
-      msg: "Bad request: Invalid data type",
-    });
-  }
-
   const { rows } = await db.query(
     `INSERT INTO reviews (property_id, guest_id, rating, comment)
    VALUES ($1, $2, $3, $4)
@@ -57,9 +47,6 @@ exports.insertPropertyReview = async (id, guest_id, rating, comment) => {
 };
 
 exports.removePropertyReview = async (id) => {
-  if (isNaN(id)) {
-    return Promise.reject({ status: 400, msg: "Bad request" });
-  }
   const { rowCount } = await db.query(
     `
     DELETE from reviews
@@ -67,7 +54,8 @@ exports.removePropertyReview = async (id) => {
     `,
     [id]
   );
-  if (!rowCount) return Promise.reject({ status: 404, msg: "Data not found." });
+  if (!rowCount)
+    return Promise.reject({ status: 404, msg: "Review not found." });
 
   return;
 };
