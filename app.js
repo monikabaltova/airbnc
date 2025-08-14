@@ -17,6 +17,7 @@ const {
   postFavourite,
   deleteFavourites,
 } = require("./controllers/favourites.controller");
+const { getBookings } = require("./controllers/bookings.controlle");
 
 const { getUserById } = require("./controllers/users.controller");
 
@@ -27,6 +28,7 @@ app.get("/api/properties", getAllProperties);
 app.get("/api/properties/:id", getPropertiesById);
 app.get("/api/users/:id", getUserById);
 app.get("/api/properties/:id/reviews", getPropertyReviews);
+app.get("/api/properties/:id/bookings", getBookings);
 
 app.post("/api/properties/:id/reviews", postPropertyReview);
 app.post("/api/properties/:id/favourite", postFavourite);

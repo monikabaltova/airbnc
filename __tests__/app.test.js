@@ -419,7 +419,7 @@ describe("app", () => {
       expect(body.msg).toBe("Fill up all required fields");
     });
     // 404 user not found and 404 property not found
-    describe.only("DELETE - api/properties/:id/users/:id/favourite", () => {
+    describe("DELETE - api/properties/:id/users/:id/favourite", () => {
       test("deleted request returns status 204", async () => {
         const { rows: beforeDelete } = await db.query(
           `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
@@ -443,5 +443,35 @@ describe("app", () => {
       });
       //test user not found and property not found
     });
+  });
+  describe.only("GET - /api/properties/:id/bookings", () => {
+    test("returns 200 status and an array of bookings having properties: booking_id, check_in_date, check_out_date and created_at and have as well property_id", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/1/bookings")
+        .expect(200);
+      console.log(body);
+      expect(body.bookings.length > 0).toBe(true);
+      body.bookings.forEach((booking) => {
+        expect(booking.hasOwnProperty("booking_id")).toBe(true);
+        expect(booking.hasOwnProperty("check_in_date")).toBe(true);
+        expect(booking.hasOwnProperty("check_out_date")).toBe(true);
+        expect(booking.hasOwnProperty("created_at")).toBe(true);
+      });
+      expect(body.property_id).toBe(1);
+    });
+    test("returns 200 status and msg if property id is valid and exist but there is no bookings", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/11/bookings")
+        .expect(200);
+
+      expect(body.msg).toBe("This property has no bookings");
+    });
+    test("returns 400 when id is invalid data type", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/notAnumber/bookings")
+        .expect(400);
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    // property id dose not exist404
   });
 });
