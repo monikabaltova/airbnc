@@ -3,6 +3,7 @@ const {
   handlePathNotFound,
   handleBadRequest,
   handleCustomError,
+  handleServerError,
 } = require("./controllers/error.controller");
 const {
   getAllProperties,
@@ -49,5 +50,6 @@ app.all("/*invalid", handlePathNotFound);
 
 app.use(handleCustomError);
 app.use(handleBadRequest);
+app.use(handleServerError);
 
 module.exports = app;

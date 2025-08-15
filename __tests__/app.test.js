@@ -151,6 +151,13 @@ describe("app", () => {
 
           expect(body.msg).toBe("There is no properties avaliable");
         });
+        test.only("returns status 404 and msg when passed a property type which does not exist", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?property_type=non-existent-property-type")
+            .expect(404);
+
+          expect(body.msg).toBe("Property type does not exist");
+        });
       });
       describe("host_id", () => {
         test("?host_id returns only the properties with matching host id", async () => {

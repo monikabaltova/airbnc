@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { checkExists } = require("./utils");
 
 exports.fetchAllProperties = async (
   sort = "popularity",
@@ -29,6 +30,13 @@ exports.fetchAllProperties = async (
     const formattedType =
       property_type.charAt(0).toUpperCase() +
       property_type.slice(1).toLowerCase();
+
+    await checkExists(
+      "properties",
+      "property_type",
+      formattedType,
+      "Property type does not exist"
+    );
     values.push(formattedType);
     whereConditions.push(`property_type = $${values.length}`);
   }
