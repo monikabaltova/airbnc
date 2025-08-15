@@ -36,3 +36,15 @@ exports.insertBooking = async (
 
   return rows[0].booking_id;
 };
+
+exports.removeBooking = async (booking_id) => {
+  await db.query(
+    `
+        DELETE FROM bookings 
+        WHERE booking_id = $1
+        `,
+    [booking_id]
+  );
+
+  return;
+};

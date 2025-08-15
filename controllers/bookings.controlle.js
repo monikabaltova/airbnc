@@ -1,6 +1,9 @@
 const req = require("express/lib/request");
-const { fetchBookings, insertBooking } = require("../models/bookings.model");
-const res = require("express/lib/response");
+const {
+  fetchBookings,
+  insertBooking,
+  removeBooking,
+} = require("../models/bookings.model");
 
 exports.getBookings = async (req, res, next) => {
   const { id } = req.params;
@@ -25,7 +28,16 @@ exports.postBooking = async (req, res, next) => {
     );
     res.status(201).send({ msg: "Booking successful", booking_id });
   } catch (error) {
-    console.log(error);
+    next(error);
+  }
+};
+
+exports.deleteBooking = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    await removeBooking(id);
+    res.status(204).send();
+  } catch (error) {
     next(error);
   }
 };

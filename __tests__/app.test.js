@@ -444,7 +444,7 @@ describe("app", () => {
       //test user not found and property not found
     });
   });
-  describe.only("GET - /api/properties/:id/bookings", () => {
+  describe("GET - /api/properties/:id/bookings", () => {
     test("returns 200 status and an array of bookings having properties: booking_id, check_in_date, check_out_date and created_at and have as well property_id", async () => {
       const { body } = await request(app)
         .get("/api/properties/1/bookings")
@@ -473,7 +473,7 @@ describe("app", () => {
     });
     // property id dose not exist404
   });
-  describe.only("POST /api/properties/:id/booking", () => {
+  describe("POST /api/properties/:id/booking", () => {
     test("post request to /api/properties/:id/booking returning status 201 and a msg", async () => {
       const { body } = await request(app)
         .post("/api/properties/1/booking")
@@ -527,5 +527,31 @@ describe("app", () => {
       expect(body.msg).toBe("Fill up all required fields");
     });
     //404 uiser and peroperty not found
+  });
+  describe("DELETE - /api/bookings/:id", () => {
+    test("delete request returns status 204 after deletion", async () => {
+      const { rows: beforeDelete } = await db.query(
+        `SELECT * FROM bookings WHERE booking_id = 1;`
+      );
+      expect(beforeDelete.length).toBe(1);
+
+      await request(app).delete("/api/bookings/1").expect(204);
+      const { rows: afterDelete } = await db.query(
+        `SELECT * FROM bookings WHERE booking_id = 1;`
+      );
+      expect(afterDelete.length).toBe(0);
+    });
+    test("returns 400 when booking_id invalid", async () => {
+      const { body } = await request(app)
+        .delete("/api/bookings/notAnumber")
+        .expect(400);
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    /*test("returns 404 when booking_id does not exist", async () => {
+      const { body } = await request(app)
+        .delete("/api/bookings/1000")
+        .expect(404);
+      expect(body.msg).toBe("Booking not found");
+    });*/
   });
 });

@@ -20,6 +20,7 @@ const {
 const {
   getBookings,
   postBooking,
+  deleteBooking,
 } = require("./controllers/bookings.controlle");
 
 const { getUserById } = require("./controllers/users.controller");
@@ -42,6 +43,7 @@ app.delete(
   "/api/properties/:property_id/users/:guest_id/favourite",
   deleteFavourites
 );
+app.delete("/api/bookings/:id", deleteBooking);
 
 app.all("/*invalid", handlePathNotFound);
 
