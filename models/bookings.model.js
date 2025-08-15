@@ -1,6 +1,14 @@
 const db = require("../db/connection");
+const { checkExists } = require("./utils");
 
 exports.fetchBookings = async (property_id) => {
+  await checkExists(
+    "properties",
+    "property_id",
+    property_id,
+    "Property does not exist"
+  );
+
   const { rows } = await db.query(
     ` SELECT booking_id, 
         check_in_date, 
@@ -26,6 +34,13 @@ exports.insertBooking = async (
   check_in_date,
   check_out_date
 ) => {
+  await checkExists(
+    "properties",
+    "property_id",
+    property_id,
+    "Property does not exist"
+  );
+  await checkExists("users", "user_id", guest_id, "User does not exist");
   const { rows } = await db.query(
     `
     INSERT INTO bookings
@@ -38,6 +53,12 @@ exports.insertBooking = async (
 };
 
 exports.removeBooking = async (booking_id) => {
+  await checkExists(
+    "bookings",
+    "booking_id",
+    booking_id,
+    "Booking does not exist"
+  );
   await db.query(
     `
         DELETE FROM bookings 

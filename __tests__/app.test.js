@@ -144,14 +144,8 @@ describe("app", () => {
           expect(resultIds.length).toBe(3);
           expect(resultIds).toEqual(expect.arrayContaining([2, 7, 10]));
         });
-        test("returns status 200 when the selected property type does not exist or there are no properties listed", async () => {
-          const { body } = await request(app)
-            .get("/api/properties?property_type=garage")
-            .expect(200);
 
-          expect(body.msg).toBe("There is no properties avaliable");
-        });
-        test.only("returns status 404 and msg when passed a property type which does not exist", async () => {
+        test("returns status 404 and msg when passed a property type which does not exist", async () => {
           const { body } = await request(app)
             .get("/api/properties?property_type=non-existent-property-type")
             .expect(404);
@@ -179,6 +173,12 @@ describe("app", () => {
             .get("/api/properties?host_id=2")
             .expect(200);
           expect(body.msg).toBe("This user currently has no properties");
+        });
+        test("returns 404 when host id does not exist", async () => {
+          const { body } = await request(app)
+            .get("/api/properties?host_id=1000")
+            .expect(404);
+          expect(body.msg).toBe("User does not exist");
         });
       });
     });
@@ -278,9 +278,9 @@ describe("app", () => {
       const { body } = await request(app).get("/api/properties/3/reviews");
       expect(body.average_rating).toBe(4);
     });
-    test("returns 200 and msg when passed a valid property id which does not exist", async () => {
+    test("returns 200 and msg when passed a valid property id ", async () => {
       const { body } = await request(app)
-        .get("/api/properties/2000/reviews")
+        .get("/api/properties/2/reviews")
         .expect(200);
       expect(body.msg).toBe("This property has no reviews !");
     });
@@ -289,6 +289,12 @@ describe("app", () => {
         .get("/api/properties/not-a-number/reviews")
         .expect(400);
       expect(body.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 404 and msg when passed an id which does not exist", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/1000/reviews")
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
     });
   });
   describe("POST - /api/properties/:id/reviews", () => {
@@ -323,18 +329,6 @@ describe("app", () => {
       expect(body.review.hasOwnProperty("created_at")).toBe(true);
     });
 
-    /* test("returns 404 and msg when guest_id does not exist", async () => {
-      const { body } = await request(app)
-        .post("/api/properties/3/reviews")
-        .send({
-          guest_id: 1000,
-          rating: 5,
-          comment: "Great",
-        })
-        .expect(404);
-      expect(body.msg).toBe("User not found");
-    });*/
-
     test("returns 400 and msg when payload contains an invalid data type", async () => {
       const { body } = await request(app)
         .post("/api/properties/1/reviews")
@@ -351,10 +345,32 @@ describe("app", () => {
         .post("/api/properties/3/reviews")
         .send({
           rating: 5,
-          comment: "Great",
+          comment: "Not gonna pass!",
         })
         .expect(400);
       expect(body.msg).toBe("Fill up all required fields");
+    });
+    test("returns 404 and msg when passed a property id which does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1000/reviews")
+        .send({
+          guest_id: 4,
+          rating: 5,
+          comment: "Lovely place! I'd definitely recommend it.",
+        })
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
+    });
+    test("returns 404 and msg when guest_id does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/3/reviews")
+        .send({
+          guest_id: 1000,
+          rating: 5,
+          comment: "Lovely place! I'd definitely recommend it.",
+        })
+        .expect(404);
+      expect(body.msg).toBe("User does not exist");
     });
   });
   describe("DELETE - /api/reviews/:id", () => {
@@ -425,30 +441,58 @@ describe("app", () => {
         .expect(400);
       expect(body.msg).toBe("Fill up all required fields");
     });
-    // 404 user not found and 404 property not found
-    describe("DELETE - api/properties/:id/users/:id/favourite", () => {
-      test("deleted request returns status 204", async () => {
-        const { rows: beforeDelete } = await db.query(
-          `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
-          [1, 6]
-        );
-        await request(app)
-          .delete("/api/properties/1/users/6/favourite")
-          .expect(204);
-        const { rows: afterDelete } = await db.query(
-          `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
-          [1, 6]
-        );
-        expect(beforeDelete.length).toBe(1);
-        expect(afterDelete.length).toBe(0);
-      });
-      test("returns 400 when property_ir and user_id are invalid data", async () => {
-        const { body } = await request(app)
-          .delete("/api/properties/notAnumber/users/text/favourite")
-          .expect(400);
-        expect(body.msg).toBe("Bad request: invalid data");
-      });
-      //test user not found and property not found
+    test("returns 404 and msg when passed property id which does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1000/favourite")
+        .send({
+          guest_id: 2,
+        })
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
+    });
+    test("returns 404 when guest_id does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/favourite")
+        .send({
+          guest_id: 1000,
+        })
+        .expect(404);
+      expect(body.msg).toBe("User does not exist");
+    });
+  });
+  describe("DELETE - api/properties/:id/users/:id/favourite", () => {
+    test("deleted request returns status 204", async () => {
+      const { rows: beforeDelete } = await db.query(
+        `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
+        [1, 6]
+      );
+      await request(app)
+        .delete("/api/properties/1/users/6/favourite")
+        .expect(204);
+      const { rows: afterDelete } = await db.query(
+        `SELECT * FROM favourites WHERE property_id = $1 AND guest_id = $2`,
+        [1, 6]
+      );
+      expect(beforeDelete.length).toBe(1);
+      expect(afterDelete.length).toBe(0);
+    });
+    test("returns 400 when property_ir and user_id are invalid data", async () => {
+      const { body } = await request(app)
+        .delete("/api/properties/notAnumber/users/text/favourite")
+        .expect(400);
+      expect(body.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 404 when property_id does not exist", async () => {
+      const { body } = await request(app)
+        .delete("/api/properties/1000/users/6/favourite")
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
+    });
+    test("returns 404 when user_id does not exist", async () => {
+      const { body } = await request(app)
+        .delete("/api/properties/1/users/1000/favourite")
+        .expect(404);
+      expect(body.msg).toBe("User does not exist");
     });
   });
   describe("GET - /api/properties/:id/bookings", () => {
@@ -478,7 +522,12 @@ describe("app", () => {
         .expect(400);
       expect(body.msg).toBe("Bad request: invalid data");
     });
-    // property id dose not exist404
+    test("returns 404 when property_id does not exist", async () => {
+      const { body } = await request(app)
+        .get("/api/properties/1000/bookings")
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
+    });
   });
   describe("POST /api/properties/:id/booking", () => {
     test("post request to /api/properties/:id/booking returning status 201 and a msg", async () => {
@@ -506,8 +555,8 @@ describe("app", () => {
         .post("/api/properties/1/booking")
         .send({
           guest_id: "not-a-number",
-          check_in_date: "2025-11-11",
-          check_out_date: "2025-12-12",
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
         })
         .expect(400);
       const { body: body3 } = await request(app)
@@ -515,7 +564,7 @@ describe("app", () => {
         .send({
           guest_id: 1,
           check_in_date: "not-a-date",
-          check_out_date: "2025-12-12",
+          check_out_date: "2025-08-20",
         })
         .expect(400);
       console.log(body.res);
@@ -527,11 +576,33 @@ describe("app", () => {
       const { body } = await request(app)
         .post("/api/properties/1/booking")
         .send({
-          check_in_date: "2025-11-11",
-          check_out_date: "2025-12-12",
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
         })
         .expect(400);
       expect(body.msg).toBe("Fill up all required fields");
+    });
+    test("returns 404 when property_id does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1000/booking")
+        .send({
+          guest_id: 1,
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
+        })
+        .expect(404);
+      expect(body.msg).toBe("Property does not exist");
+    });
+    test("returns 404 when guest_id does not exist", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/booking")
+        .send({
+          guest_id: 1000,
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
+        })
+        .expect(404);
+      expect(body.msg).toBe("User does not exist");
     });
     //404 uiser and peroperty not found
   });
@@ -554,11 +625,11 @@ describe("app", () => {
         .expect(400);
       expect(body.msg).toBe("Bad request: invalid data");
     });
-    /*test("returns 404 when booking_id does not exist", async () => {
+    test("returns 404 when booking_id does not exist", async () => {
       const { body } = await request(app)
         .delete("/api/bookings/1000")
         .expect(404);
-      expect(body.msg).toBe("Booking not found");
-    });*/
+      expect(body.msg).toBe("Booking does not exist");
+    });
   });
 });

@@ -32,7 +32,7 @@ exports.fetchAllProperties = async (
       property_type.slice(1).toLowerCase();
 
     await checkExists(
-      "properties",
+      "property_types",
       "property_type",
       formattedType,
       "Property type does not exist"
@@ -43,6 +43,8 @@ exports.fetchAllProperties = async (
 
   if (host_id !== undefined) {
     const host = Number(host_id);
+
+    await checkExists("users", "user_id", host, "User does not exist");
 
     values.push(host);
     whereConditions.push(`properties.host_id = $${values.length}`);
