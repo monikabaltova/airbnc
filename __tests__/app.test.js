@@ -449,7 +449,6 @@ describe("app", () => {
       const { body } = await request(app)
         .get("/api/properties/1/bookings")
         .expect(200);
-      console.log(body);
       expect(body.bookings.length > 0).toBe(true);
       body.bookings.forEach((booking) => {
         expect(booking.hasOwnProperty("booking_id")).toBe(true);
@@ -473,5 +472,60 @@ describe("app", () => {
       expect(body.msg).toBe("Bad request: invalid data");
     });
     // property id dose not exist404
+  });
+  describe.only("POST /api/properties/:id/booking", () => {
+    test("post request to /api/properties/:id/booking returning status 201 and a msg", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/booking")
+        .send({
+          guest_id: 1,
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
+        })
+        .expect(201);
+      expect(body.booking_id).toBe(11);
+      expect(body.msg).toBe("Booking successful");
+    });
+    test("returns 400 when invalid data is passed to property_id or payload", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/notAnumber/booking")
+        .send({
+          guest_id: 1,
+          check_in_date: "2025-08-15",
+          check_out_date: "2025-08-20",
+        })
+        .expect(400);
+      const { body: body2 } = await request(app)
+        .post("/api/properties/1/booking")
+        .send({
+          guest_id: "not-a-number",
+          check_in_date: "2025-11-11",
+          check_out_date: "2025-12-12",
+        })
+        .expect(400);
+      const { body: body3 } = await request(app)
+        .post("/api/properties/1/booking")
+        .send({
+          guest_id: 1,
+          check_in_date: "not-a-date",
+          check_out_date: "2025-12-12",
+        })
+        .expect(400);
+      console.log(body.res);
+      expect(body.msg).toBe("Bad request: invalid data");
+      expect(body2.msg).toBe("Bad request: invalid data");
+      expect(body3.msg).toBe("Bad request: invalid data");
+    });
+    test("returns 400 when payload missing a not null variable", async () => {
+      const { body } = await request(app)
+        .post("/api/properties/1/booking")
+        .send({
+          check_in_date: "2025-11-11",
+          check_out_date: "2025-12-12",
+        })
+        .expect(400);
+      expect(body.msg).toBe("Fill up all required fields");
+    });
+    //404 uiser and peroperty not found
   });
 });

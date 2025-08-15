@@ -3,7 +3,7 @@ exports.handlePathNotFound = (req, res, next) => {
 };
 
 exports.handleBadRequest = (err, req, res, next) => {
-  if (err.code === "22P02") {
+  if (err.code === "22P02" || err.code === "22007") {
     res.status(400).send({ msg: "Bad request: invalid data" });
   } else if (err.code === "23502") {
     res.status(400).send({ msg: "Fill up all required fields" });

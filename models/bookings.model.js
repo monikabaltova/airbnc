@@ -19,3 +19,20 @@ exports.fetchBookings = async (property_id) => {
   }
   return rows;
 };
+
+exports.insertBooking = async (
+  property_id,
+  guest_id,
+  check_in_date,
+  check_out_date
+) => {
+  const { rows } = await db.query(
+    `
+    INSERT INTO bookings
+    (property_id, guest_id, check_in_date, check_out_date)
+    VALUES ($1, $2, $3, $4) RETURNING*;`,
+    [property_id, guest_id, check_in_date, check_out_date]
+  );
+
+  return rows[0].booking_id;
+};
