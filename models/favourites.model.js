@@ -8,7 +8,6 @@ exports.insertFavourite = async (guest_id, property_id) => {
     property_id,
     "Property does not exist"
   );
-  await checkExists("users", "user_id", guest_id, "User does not exist"); //<<< when i add this brakes test 400 missing required fields
 
   const { rows } = await db.query(
     `
@@ -27,7 +26,7 @@ exports.removeFavourite = async (property_id, guest_id) => {
     property_id,
     "Property does not exist"
   );
-  await checkExists("users", "user_id", guest_id, "User does not exist"); //<<< when i add this brakes test 400 missing required fields
+  await checkExists("users", "user_id", guest_id, "User does not exist");
   const { rows } = await db.query(
     `DELETE FROM favourites
     WHERE  

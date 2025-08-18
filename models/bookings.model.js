@@ -40,7 +40,7 @@ exports.insertBooking = async (
     property_id,
     "Property does not exist"
   );
-  await checkExists("users", "user_id", guest_id, "User does not exist");
+
   const { rows } = await db.query(
     `
     INSERT INTO bookings

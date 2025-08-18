@@ -7,6 +7,8 @@ exports.handleBadRequest = (err, req, res, next) => {
     res.status(400).send({ msg: "Bad request: invalid data" });
   } else if (err.code === "23502") {
     res.status(400).send({ msg: "Fill up all required fields" });
+  } else if (err.code === "23503") {
+    res.status(404).send({ msg: "User does not exist" });
   } else {
     next(err);
   }

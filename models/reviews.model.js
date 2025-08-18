@@ -40,7 +40,6 @@ exports.fetchPropertyReviews = async (id) => {
 
 exports.insertPropertyReview = async (id, guest_id, rating, comment) => {
   await checkExists("properties", "property_id", id, "Property does not exist");
-  await checkExists("users", "user_id", guest_id, "User does not exist"); //<<< when i add this brakes test 400 missing required fields
 
   const { rows } = await db.query(
     `INSERT INTO reviews (property_id, guest_id, rating, comment)
