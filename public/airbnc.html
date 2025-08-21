@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Airbnc</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Airbnc</h1>
+    </header>
+
+    <br />
+    <main>
+      <section id="endpoints">
+        <h2>Get requests:</h2>
+        <div id="get-endpoints">
+          <div class="endpoint">
+            <h3>Get all properties</h3>
+            <ul>
+              <li>Path: <code>/api/properties</code></li>
+              <li>
+                Description: Fetches a list of all avaliable properties, ordered
+                by most favorited to least by default.
+              </li>
+            </ul>
+            <h4>Example Response:</h4>
+            <pre><code>
+              {
+        "properties": [
+            {
+                "property_id": 1,
+                "property_name": "Cosy Family House",
+                "location": "Cambridge, UK",
+                "price_per_night": 200,
+                "host": "Alice Johnson",
+                "image": "https://images.com/property1.jpg
+            },
+            {
+                "property_id": 2,
+                "property_name": "Cozy Mountain Cabin",
+                "location": "Lake District, UK",
+                "price_per_night": 150,
+                "host": "Isabella Martinez",
+                "image": "https://images.com/property2.jpg
+            }
+        ]
+    }
+            </code></pre>
+
+            <p><i>Optional Queries</i>
+            <ul>
+              <li>sort - sorts by price_per_night or popularity (default)</li>
+              <li>order - orders by asc or desc (default)</li>
+              <li>max_price - filters by a given maximum price</li>
+              <li>min_price - filters by a given minimum price</li>
+              <li>property_type - filters by a given property type</li>
+              <li>host_id - filters by a given host ID</li>
+            </ul>
+            
+            </p>
+          </div>
+
+          <div class="endpoint">
+            <h3>Get property by ID</h3>
+            <ul>
+              <li>Path: <code>/api/properties/:id</code></li>
+              <li>
+                Description: Fetches a detailed information about the chosen property. Optionally includes a flag indicating whether a specific user has marked the property as a favourite.</li>
+            </ul>
+            <h4>Example Response:</h4>
+            <pre><code>
+              {
+        "property": {
+                "property_id": 1,
+                "property_name": "Cosy Family House",
+                "location": "Cambridge, UK",
+                "price_per_night": 200,
+                "description": "A spacious home perfect for families looking to explore the city.",
+                "host": "Alice Johnson",
+                "host_avatar": "https://example.com/images/host_avatar.jpg",
+                "favourite_count": "0",
+                "images":[
+                "https://images.com/property1.jpg,
+                "https://images.com/property1-2.jpg 
+                ],
+                "favourite_count": "0",
+            }
+    }
+            </code></pre>
+          </div>
+          <div class="endpoint">
+            <h3>Get user by ID</h3>
+            <ul>
+              <li>Path: <code>/api/users/:id</code></li>
+              <li>
+                Description: Fetches a detailed information about the chosen user.</li>
+            </ul>
+            <h4>Example Response:</h4>
+            <pre><code>
+               {
+        "user":  {
+            "user_id": 1,
+            "first_name": "Alice",
+            "surname": "Johnson",
+            "email": "alice@example.com",
+            "phone_number": "+44 7000 111111",
+            "avatar": "https://example.com/avatar.jpg">
+            "created_at": "2025-08-21T09:30:00Z"
+            }
+          } 
+            </code></pre>
+          </div>
+
+          <div class="endpoint">
+            <h3>Get property's reviews by ID</h3>
+            <ul>
+              <li>Path: <code>/api/properties/:id/reviews</code></li>
+              <li>
+                Description: Fetches all reviews for a specific property, sorted from latest to oldest by defult.It also provides the average rating across all reviews.</li>
+            </ul>
+            <h4>Example Response:</h4>
+            <pre><code>
+               {
+        "reviews": [
+            {
+                "review_id": 1,
+                "comment": "Amazing property with great amenities.",
+                "rating": 5,
+                "created_at": "2025-05-01",
+                "guest": "Bob Smith",
+                "guest_avatar": "https://example.com/images/guest_avatar.jpg"
+            },
+            {
+                "review_id": 2,
+                "comment": "Good experience, but the location was a bit far.",
+                "rating": 4,
+                "created_at": "2025-07-25",
+                "guest": "John Doe",
+                "guest_avatar": "https://example.com/images/john_avatar.jpg"
+            }
+        ],
+        "average_rating": 4.5
+    }
+            </code></pre>
+          </div>
+          <div class="endpoint">
+            <h3>Get property's bookings by ID</h3>
+            <ul>
+              <li>Path: <code>/api/properties/:id/bookings</code></li>
+              <li>
+                Description: Fetches all bookings for the specified property.</li>
+            </ul>
+            <h4>Example Response:</h4>
+            <pre><code>
+              {
+        "bookings": [
+            {
+                "booking_id": 1,
+                "check_in_date": "2025-03-03",
+                "check_out_date": "2025-06-25",
+                "created_at": "2025-01-15T10:00:00Z"
+            },
+            {
+                "booking_id": 2,
+                "check_in_date": "2025-02-20",
+                "check_out_date": "2025-02-25",
+                "created_at": "2024-11-30T08:30:00Z"
+            }
+        ],
+        "property_id": 3
+    }
+            </code></pre>
+          </div>
+        </div>
+        <h2>Post requests:</h2>
+        <div id="post-endpoints">
+          <div class="endpoint">
+            <h3>Post a new review</h3>
+            <ul>
+              <li>Path: <code>/api/properties/:id/review</code></li>
+              <li>Description: Inserts a new review for the specified property. The payload must include the guest ID, rating, and comment.</li>
+            </ul>
+            <h4>Expected JSON payload</h4>
+            <pre><code>
+                 {
+        "guest_id": 1,
+        "rating": 5,
+        "comment": "Fantastic"
+    }
+            </code></pre>
+            <h4>Example Response:</h4>
+            <pre><code>
+                 {
+        "review": {
+            "review_id": 5,
+            "property_id": 2,
+            "guest_id": 1,
+            "rating": 5,
+            "comment": "Fantastic",
+            "created_at": "2025-08-01T14:43:31.906Z"
+        }
+    }
+            </code></pre>
+          </div>
+        </div>
+        <h2>Delete requests</h2>
+      </section>
+    </main>
+    <footer>
+      <p>By Monika Baltova</p>
+    </footer>
+  </body>
+</html>
