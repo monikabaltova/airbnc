@@ -12,26 +12,26 @@ A full-stack web application that mimics a rental property platform.
 
 ### 👩‍💻Instalation steps:
 
-1. Fork and then clone the repositiory to work locally on your machine:
+**1. Fork and then clone the repositiory to work locally on your machine:**
 
 ```
 git clone https://github.com/your_user_name/airbnc
 
 ```
 
-2. Install the necessary dependencies running:
+**2. Install the necessary dependencies running:**
 
 ```
 npm install
 ```
 
-3. To set up the database locally, run:
+**3. To set up the database locally, run:**
 
 ```
 npm run setup-dbs
 ```
 
-4. Create.env file at the root level where to store an environment variable for the connection pool to access database. Run:
+**4. Create.env file at the root level where to store an environment variable for the connection pool to access database. Run:**
 
 `.env.test`:
 
@@ -42,12 +42,12 @@ PGDATABASE=airbnc_test
 `.env.dev`:
 
 ```
-PGDATABASE=airbnc
+PGDATABASE=airbnc_dev
 ```
 
-**Ensure both .env files are added to a .gitignore file.**
+**_Ensure both .env files are added to a .gitignore file._**
 
-5. Seed the Databases:
+**5. Seed the Databases:**
 
 If you work with test data:
 
