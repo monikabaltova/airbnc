@@ -1,6 +1,7 @@
 # AirBNC - Backend
 
-##Overview
+## Overview
+
 A full-stack web application that mimics a rental property platform.
 
 ### 📋Prerequisites
@@ -44,7 +45,7 @@ PGDATABASE=airbnc_test
 PGDATABASE=airbnc
 ```
 
-### Ensure both .env files are added to a .gitignore file.
+**Ensure both .env files are added to a .gitignore file.**
 
 5. Seed the Databases:
 
