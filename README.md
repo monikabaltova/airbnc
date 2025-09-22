@@ -1,8 +1,15 @@
-# AirBNC
+# AirBNC - Backend
 
-This project mimic a rental property application
+##Overview
+A full-stack web application that mimics a rental property platform.
 
-### Instalation steps:
+### 📋Prerequisites
+
+- **Node.js**
+- **PostgreSQL**
+- **NPM**
+
+### 👩‍💻Instalation steps:
 
 1. Fork and then clone the repositiory to work locally on your machine:
 
@@ -25,6 +32,30 @@ npm run setup-dbs
 
 4. Create.env file at the root level where to store an environment variable for the connection pool to access database. Run:
 
+`.env.test`:
+
+```
+PGDATABASE=airbnc_test
+```
+
+`.env.dev`:
+
 ```
 PGDATABASE=airbnc
+```
+
+### Ensure both .env files are added to a .gitignore file.
+
+5. Seed the Databases:
+
+If you work with test data:
+
+```
+npm run seed-test
+```
+
+If you work with dev data run:
+
+```
+npm run seed-dev
 ```
