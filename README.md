@@ -2,7 +2,8 @@
 
 ## Overview
 
-A full-stack web application that mimics a rental property platform.
+A full-stack web application that mimics a property rental site. 
+This repo is for the Backend portion of the project and is built using Node.js, Express, and PostgreSQL. Uses Supabase for database hosting, and is deployed on Render.
 
 ### 📋Prerequisites
 
